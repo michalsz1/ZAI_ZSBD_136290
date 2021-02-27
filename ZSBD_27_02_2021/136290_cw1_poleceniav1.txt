@@ -1,0 +1,42 @@
+CREATE TABLE DEPARTMENTS (department_id INT PRIMARY KEY, department_name VARCHAR(40) NOT NULL, manager_id INT, location_id INT)
+
+CREATE TABLE LOCATIONS (location_id INT PRIMARY KEY, street_address VARCHAR(40) NOT NULL, postal_code VARCHAR(10) NOT NULL, city VARCHAR(20) NOT NULL, state_province VARCHAR(30) NOT NULL, country_id INT)
+
+CREATE TABLE COUNTRIES (country_id INT PRIMARY KEY, country_name VARCHAR(20) NOT NULL, region_id INT)
+
+CREATE TABLE REGIONS (region_id INT PRIMARY KEY, region_name VARCHAR(20) NOT NULL)
+
+// start dla przecwiczenia
+ALTER TABLE REGIONS DROP (REGION_NAME);
+ALTER TABLE REGIONS ADD (REGION_NAME VARCHAR(20));
+// stop dla przecwiczenia
+
+CREATE TABLE EMPLOYEES (employee_id INT PRIMARY KEY, first_name VARCHAR(20) NOT NULL, last_name VARCHAR(20) NOT NULL, email VARCHAR(30) NOT NULL, phone_number INT NOT NULL, hire_date DATE, job_id INT, salary INT, comission_pct float, manager_id INT, department_id INT)
+
+CREATE TABLE JOB_HISTORY (employee_id INT, start_date DATE, end_date DATE, job_id INT, department_id INT);
+ALTER TABLE JOB_HISTORY ADD CONSTRAINT pk_job_history PRIMARY KEY(employee_id,start_date);
+
+CREATE TABLE JOBS (job_id INT PRIMARY KEY, job_title VARCHAR(20), min_salary NUMBER(10,2), max_salary NUMBER(10,2));
+
+
+ALTER TABLE LOCATIONS ADD FOREIGN KEY(country_id) REFERENCES COUNTRIES(country_id);
+ALTER TABLE COUNTRIES ADD FOREIGN KEY(region_id) REFERENCES REGIONS(region_id);
+ALTER TABLE DEPARTMENTS ADD FOREIGN KEY(location_id) REFERENCES LOCATIONS(location_id);
+ALTER TABLE DEPARTMENTS ADD FOREIGN KEY(manager_id) REFERENCES EMPLOYEES(employee_id);
+ALTER TABLE JOB_HISTORY ADD FOREIGN KEY(department_id) REFERENCES DEPARTMENTS(department_id);
+ALTER TABLE JOB_HISTORY ADD FOREIGN KEY(job_id) REFERENCES JOBS(job_id);
+ALTER TABLE EMPLOYEES ADD FOREIGN KEY(job_id) REFERENCES JOBS(job_id);
+ALTER TABLE EMPLOYEES ADD FOREIGN KEY(manager_id) REFERENCES EMPLOYEES(employee_id);
+ALTER TABLE EMPLOYEES ADD FOREIGN KEY(department_id) REFERENCES DEPARTMENTS(department_id);
+//
+ALTER TABLE JOBS
+ADD CONSTRAINT max_minus_min_wiecej_niz_dwa_tys
+CHECK (min_salary < (max_salary-2000))
+
+
+ALTER TABLE LOCATIONS DROP CONSTRAINT SYS_C007728; // tylko dla testu
+ALTER TABLE LOCATIONS ADD CONSTRAINT country_id_fk FOREIGN KEY(country_id) REFERENCES COUNTRIES(country_id); // tylko dla testu
+
+
+
+
