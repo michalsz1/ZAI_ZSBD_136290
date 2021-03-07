@@ -1,0 +1,112 @@
+DROP TABLE REGIONS cascade constraints;
+DROP TABLE COUNTRIES cascade constraints;
+DROP TABLE DEPARTMENTS cascade constraints;
+DROP TABLE EMPLOYEES cascade constraints;
+DROP TABLE JOB_HISTORY cascade constraints;
+DROP TABLE JOBS cascade constraints;
+DROP TABLE LOCATIONS cascade constraints;
+
+CREATE TABLE REGIONS AS SELECT * FROM HR.REGIONS;
+CREATE TABLE COUNTRIES AS SELECT * FROM HR.COUNTRIES;
+CREATE TABLE LOCATIONS AS SELECT * FROM HR.LOCATIONS;
+CREATE TABLE DEPARTMENTS AS SELECT * FROM HR.DEPARTMENTS;
+CREATE TABLE EMPLOYEES AS SELECT * FROM HR.EMPLOYEES;
+CREATE TABLE JOB_HISTORY AS SELECT * FROM HR.JOB_HISTORY;
+CREATE TABLE JOBS AS SELECT * FROM HR.JOBS;
+
+ALTER TABLE REGIONS ADD PRIMARY KEY(region_id);
+ALTER TABLE COUNTRIES ADD PRIMARY KEY(country_id);
+ALTER TABLE LOCATIONS ADD PRIMARY KEY(location_id);
+ALTER TABLE DEPARTMENTS ADD PRIMARY KEY(department_id);
+ALTER TABLE EMPLOYEES ADD PRIMARY KEY(employee_id);
+ALTER TABLE JOB_HISTORY ADD CONSTRAINT pk_job_history PRIMARY KEY(employee_id,start_date);
+ALTER TABLE JOBS ADD PRIMARY KEY(job_id);
+
+ALTER TABLE LOCATIONS ADD FOREIGN KEY(country_id) REFERENCES COUNTRIES(country_id);
+ALTER TABLE COUNTRIES ADD FOREIGN KEY(region_id) REFERENCES REGIONS(region_id);
+ALTER TABLE DEPARTMENTS ADD FOREIGN KEY(location_id) REFERENCES LOCATIONS(location_id);
+ALTER TABLE DEPARTMENTS ADD FOREIGN KEY(manager_id) REFERENCES EMPLOYEES(employee_id);
+ALTER TABLE JOB_HISTORY ADD FOREIGN KEY(department_id) REFERENCES DEPARTMENTS(department_id);
+ALTER TABLE JOB_HISTORY ADD FOREIGN KEY(job_id) REFERENCES JOBS(job_id);
+ALTER TABLE EMPLOYEES ADD FOREIGN KEY(job_id) REFERENCES JOBS(job_id);
+ALTER TABLE EMPLOYEES ADD FOREIGN KEY(manager_id) REFERENCES EMPLOYEES(employee_id);
+ALTER TABLE EMPLOYEES ADD FOREIGN KEY(department_id) REFERENCES DEPARTMENTS(department_id);
+
+
+1) 
+SELECT last_name||' '||salary AS wynagrodzenie, department_id
+FROM employees 
+WHERE (salary BETWEEN 2000 AND 7000) AND department_id IN (20,50) 
+ORDER BY last_name ASC;
+
+2) Jesli podamy 1 - sortujemy po hire_date, 2 - sortujemy po last_name, 3 - sortujemy po manager_id 
+SELECT hire_date, last_name, manager_id
+FROM employees 
+WHERE hire_date BETWEEN '2005-01-01' AND '2005-12-31' AND manager_id IS NOT NULL 
+ORDER BY &sortuj ASC;
+
+3)
+SELECT first_name||' '||last_name AS imiona_nazwiska, salary, phone_number 
+FROM employees 
+WHERE first_name LIKE '%&first_name%' AND last_name LIKE '__e%'
+ORDER BY imiona_nazwiska DESC, salary ASC
+
+4) 
+SELECT first_name, hire_date, ROUND(MONTHS_BETWEEN(SYSDATE,TO_DATE(hire_date,'YY-MM-DD')),0) AS miesiace,
+CASE
+  WHEN ROUND(MONTHS_BETWEEN(SYSDATE,TO_DATE(hire_date,'YY-MM-DD')),0) < 150 THEN '10%'
+  WHEN ROUND(MONTHS_BETWEEN(SYSDATE,TO_DATE(hire_date,'YY-MM-DD')),0) >= 150 
+  AND ROUND(MONTHS_BETWEEN(SYSDATE,TO_DATE(hire_date,'YY-MM-DD')),0) <= 200 
+  THEN '20%'
+  WHEN ROUND(MONTHS_BETWEEN(SYSDATE,TO_DATE(hire_date,'YY-MM-DD')),0) > 200 THEN '30%'
+END
+AS wysokosc_dodatku
+From EMPLOYEES
+ORDER by miesiace
+
+
+5) Dodatkowo wypisałem minimalne zarobki i id departamentu.
+SELECT SUM(salary) AS suma_zarobkow, ROUND(AVG(salary),2) AS srednia_zarobkow, MIN(salary) AS minimalne_zarobki, department_id
+	FROM employees GROUP BY department_id HAVING MIN(salary)>5000
+	ORDER BY department_id;
+
+
+6) Dodatkowo wypisałem nazwe miasta
+SELECT last_name, EMPLOYEES.department_id, department_name, job_id, LOCATIONS.city
+FROM EMPLOYEES  
+INNER JOIN DEPARTMENTS ON employees.department_id = departments.department_id
+INNER JOIN LOCATIONS ON departments.location_id = LOCATIONS.location_id
+WHERE LOCATIONS.city = 'Toronto'
+
+
+7)
+SELECT first_name||' '||last_name AS imie_nazwisko FROM EMPLOYEES WHERE department_id IN (SELECT department_id FROM EMPLOYEES WHERE first_name = 'Jennifer')
+
+
+8)
+SELECT DEPARTMENTS.department_id, department_name FROM DEPARTMENTS
+LEFT OUTER JOIN EMPLOYEES ON EMPLOYEES.department_id = DEPARTMENTS.department_id
+WHERE employee_id IS NULL;
+
+wiersze z “lewej tabeli” dla których nie ma odpowiedników w prawej + ich wybranie WHERE
+
+9)
+CREATE TABLE Job_grades AS SELECT * FROM HR.Job_grades;
+"Error report -
+ORA-00942: tabela lub perspektywa nie istnieje
+00942. 00000 -  "table or view does not exist""
+
+10) wypisałem ale z tabeli employees, bez grade dla każdego pracownika (tabela job_grades nie istnieje u użytkownika HR)
+SELECT first_name, last_name, job_id, department_id, salary 
+FROM EMPLOYEES
+
+11) 
+SELECT first_name, last_name, salary 
+FROM EMPLOYEES 
+WHERE salary > (SELECT ROUND(AVG(salary),2) FROM employees)
+ORDER BY salary ASC
+
+12)
+SELECT employee_id, first_name||' '||last_name AS imie_nazwisko FROM EMPLOYEES 
+WHERE department_id 
+IN (SELECT department_id FROM EMPLOYEES WHERE first_name LIKE '%u%')
