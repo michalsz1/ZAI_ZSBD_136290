@@ -1,0 +1,299 @@
+========
+Zadanie 1: 
+========
+SET SERVEROUTPUT ON;
+
+DECLARE
+    v_numer_max DEPARTMENTS.department_id%TYPE;
+    v_department_name DEPARTMENTS.department_name%TYPE:='EDUCATION';
+BEGIN
+    SELECT department_id INTO v_numer_max FROM (SELECT department_id FROM DEPARTMENTS ORDER BY department_id DESC) WHERE rownum<=1;
+    INSERT INTO DEPARTMENTS VALUES((v_numer_max+10),v_department_name,'','');
+    DBMS_OUTPUT.put_line('Maksymalny numter departamentu to: '||v_numer_max);
+END;
+
+
+
+
+========
+Zadanie 2: 
+========
+
+SET SERVEROUTPUT ON;
+
+DECLARE
+    v_numer_max DEPARTMENTS.department_id%TYPE;
+    v_department_name DEPARTMENTS.department_name%TYPE:='EDUCATION';
+BEGIN
+    SELECT department_id INTO v_numer_max FROM (SELECT department_id FROM DEPARTMENTS ORDER BY department_id DESC) WHERE rownum<=1;
+    INSERT INTO DEPARTMENTS VALUES((v_numer_max+10),v_department_name,'','');
+    
+    DBMS_OUTPUT.put_line('Maksymalny numter departamentu to: '||v_numer_max);
+    
+    SELECT MAX(department_id) INTO v_numer_max FROM DEPARTMENTS;
+    UPDATE DEPARTMENTS SET location_id = '3000' WHERE department_id = v_numer_max;
+END;
+
+
+========
+Zadanie 3: 
+========
+CREATE TABLE NOWA (pole VARCHAR(40))
+DECLARE
+    v_liczba NUMBER(10):=1;
+BEGIN
+    LOOP
+    IF v_liczba != 4 AND v_liczba != 6 THEN
+        INSERT INTO NOWA VALUES (v_liczba);
+    END IF;
+        v_liczba:=v_liczba+1;
+        EXIT WHEN v_liczba>10;
+    END LOOP;
+END;
+
+
+========
+Zadanie 4: 
+========
+SET SERVEROUTPUT ON;
+
+DECLARE
+    v_zmienna COUNTRIES%ROWTYPE;
+BEGIN
+    SELECT * INTO v_zmienna FROM COUNTRIES WHERE country_id = 'CA';
+    DBMS_OUTPUT.put_line('[Countries] Nazwa: '||v_zmienna.country_name||', region_id: '||v_zmienna.region_id);
+END;
+
+
+
+========
+Zadanie 5: 
+========
+SET SERVEROUTPUT ON;
+
+DECLARE
+v_ile NUMBER(10):=0;
+v_i NUMBER(10):=0;
+TYPE tablica is table of NUMBER(6,0) 
+INDEX BY binary_integer;
+tab tablica;
+BEGIN
+    SELECT COUNT(*) INTO v_ile FROM departments;
+    LOOP
+        SELECT department_id INTO tab(v_i) FROM (SELECT department_id, ROWNUM as RN FROM DEPARTMENTS) WHERE RN = (v_i+1);
+        DBMS_OUTPUT.put_line(tab(v_i));
+        v_i:=v_i+1;
+        EXIT WHEN v_i>=30;
+    END LOOP;
+END;
+
+
+
+========
+Zadanie 6: 
+========
+SET SERVEROUTPUT ON;
+
+DECLARE
+v_ile NUMBER(10):=0;
+v_i NUMBER(10):=0;
+TYPE tablica is table of DEPARTMENTS%ROWTYPE 
+INDEX BY binary_integer;
+tab tablica;
+BEGIN
+    SELECT COUNT(*) INTO v_ile FROM departments;
+    LOOP
+        SELECT department_id INTO tab(v_i).department_id FROM (SELECT department_id, ROWNUM as RN FROM DEPARTMENTS) WHERE RN = (v_i+1);
+        SELECT department_name INTO tab(v_i).department_name FROM (SELECT department_name, ROWNUM as RN FROM DEPARTMENTS) WHERE RN = (v_i+1);
+        SELECT manager_id INTO tab(v_i).manager_id FROM (SELECT manager_id, ROWNUM as RN FROM DEPARTMENTS) WHERE RN = (v_i+1);
+        SELECT location_id INTO tab(v_i).location_id FROM (SELECT location_id, ROWNUM as RN FROM DEPARTMENTS) WHERE RN = (v_i+1);
+        DBMS_OUTPUT.put_line('department_id: '||tab(v_i).department_id||' department_name: '||tab(v_i).department_name||' manager_id: '||tab(v_i).manager_id||' location_id: '||tab(v_i).location_id);
+        v_i:=v_i+1;
+        EXIT WHEN v_i>=30;
+    END LOOP;
+END;
+
+
+========
+Zadanie 7: 
+========
+SET SERVEROUTPUT ON;
+declare
+cursor nowykursor is
+select salary, last_name from employees where department_id = 50;
+v_wynagrodzenie number;
+v_nazwisko varchar(40);
+begin
+open nowykursor;
+fetch nowykursor into v_wynagrodzenie, v_nazwisko;
+close nowykursor;
+    IF v_wynagrodzenie > 3100 THEN
+        dbms_output.put_line('Nazwisko '||v_nazwisko||' dac podwyzke');
+    ELSE
+        dbms_output.put_line('Nazwisko '||v_nazwisko||' nie dawac podwyzki');
+    END IF;
+end;
+
+
+
+========
+Zadanie 8a: 
+========
+// podałem inna wersja rozwiazania dla podpunktu a i inna dla podpunktu B
+SET SERVEROUTPUT ON;
+declare
+cursor nowykursor(zarobki_min number, zarobki_max number, litera_imienia varchar) is
+select salary, first_name, last_name from employees where salary >= zarobki_min AND salary <= zarobki_max AND upper(first_name) LIKE upper('%'||litera_imienia||'%');
+v_wynagrodzenie number;
+v_imie EMPLOYEES.first_name%TYPE;
+v_nazwisko EMPLOYEES.last_name%TYPE;
+begin
+open nowykursor(1000, 5000, 'A');
+loop
+fetch nowykursor into v_wynagrodzenie, v_imie, v_nazwisko;
+exit when nowykursor%notfound;
+dbms_output.put_line('Imie: '||v_imie||' Nazwisko: '||v_nazwisko||' Zarobki: '||v_wynagrodzenie);
+end loop;
+close nowykursor;
+end;
+
+========
+Zadanie 8b: 
+========
+// podałem inna wersja rozwiazania dla podpunktu a i inna dla podpunktu B
+SET SERVEROUTPUT ON;
+declare
+emp employees%rowtype;
+cursor nowykursor(zarobki_min number, zarobki_max number, litera_imienia varchar) is
+select salary, first_name, last_name from employees where salary >= zarobki_min AND salary <= zarobki_max AND upper(first_name) LIKE upper('%'||litera_imienia||'%');
+begin
+for emp in nowykursor(1000, 5000, 'A') loop
+dbms_output.put_line('Imie: '||emp.first_name||' Nazwisko: '||emp.last_name||' Zarobki: '||emp.salary);
+end loop;
+end;
+
+
+========
+Zadanie 9a: 
+========
+CREATE OR REPLACE PROCEDURE cw_a (p_job_id number, p_job_title varchar2)
+IS
+BEGIN
+INSERT INTO JOBS VALUES (p_job_id, p_job_title, 0, 0);
+dbms_output.put_line('Dodano wiersz do tabeli JOBS');
+EXCEPTION
+    WHEN DUP_VAL_ON_INDEX THEN
+	dbms_output.PUT_LINE('Probujesz dodac taki sam job_id');
+	WHEN OTHERS THEN
+	dbms_output.PUT_LINE('Nieoczekiwany blad');
+END;
+
+DECLARE
+BEGIN
+cw_a(100, 'Szef');
+END;
+
+
+========
+Zadanie 9b: 
+========
+CREATE OR REPLACE PROCEDURE cw_b (p_job_id jobs.job_id%TYPE, p_new_job_title jobs.job_title%TYPE)
+IS
+BEGIN
+UPDATE JOBS SET JOB_TITLE = p_new_job_title WHERE JOB_ID = p_job_id ;
+IF SQL%ROWCOUNT = 0 THEN
+dbms_output.put_line('Brak wierszy o podanym id');
+ELSE
+dbms_output.put_line('Zaktualizowano wiersz w tabeli JOBS');
+END IF;
+END;
+
+DECLARE
+BEGIN
+cw_b('100', 'Szefowa');
+END;
+
+
+========
+Zadanie 9c: 
+========
+CREATE OR REPLACE PROCEDURE cw_c (p_job_id jobs.job_id%TYPE)
+IS
+BEGIN
+DELETE FROM JOBS WHERE JOB_ID = p_job_id ;
+IF SQL%ROWCOUNT = 0 THEN
+dbms_output.put_line('Brak wiersza o podanym id');
+ELSE
+dbms_output.put_line('Usunieto wiersz z tabeli JOBS');
+END IF;
+EXCEPTION
+	WHEN OTHERS THEN
+	dbms_output.PUT_LINE('Nieoczekiwany blad');
+END;
+
+DECLARE
+BEGIN
+cw_c(200);
+END;
+
+========
+Zadanie 9d: 
+========
+CREATE OR REPLACE PROCEDURE cw_d (p_employee_id employees.employee_id%TYPE, p_zarobki OUT employees.salary%TYPE, p_nazwisko OUT employees.last_name%TYPE)
+IS
+BEGIN
+SELECT salary into p_zarobki FROM employees WHERE employee_id = p_employee_id;
+SELECT last_name into p_nazwisko FROM employees WHERE employee_id = p_employee_id;
+EXCEPTION
+	WHEN OTHERS THEN
+	dbms_output.PUT_LINE('Nieoczekiwany blad');
+END;
+
+DECLARE
+m_zarobki employees.salary%TYPE;
+m_nazwisko employees.last_name%TYPE;
+BEGIN
+m_zarobki := 0;
+m_nazwisko := '';
+cw_d(119, m_zarobki, m_nazwisko);
+dbms_output.PUT_LINE('Nazwisko: '||m_nazwisko||' zarobki: '||m_zarobki);
+END;
+
+========
+Zadanie 9e: 
+========
+SET SERVEROUTPUT ON
+
+CREATE SEQUENCE employee_id_seq
+MINVALUE 1
+START WITH 208
+INCREMENT BY 1
+CACHE 20;
+
+CREATE OR REPLACE PROCEDURE cw_e (
+p_last_name employees.last_name%TYPE, 
+p_email employees.email%TYPE, 
+p_hire_date employees.hire_date%TYPE, 
+p_job_id employees.job_id%TYPE,
+p_salary employees.salary%TYPE
+)
+IS
+BEGIN
+
+IF p_salary > 20000 THEN
+dbms_output.put_line('Wyjatek: Wynagrodzenie pracownika jest wyzsze niz 20000');
+ELSE
+INSERT INTO EMPLOYEES (employee_id, last_name, email, hire_date, job_id, salary) VALUES (employee_id_seq.nextval, p_last_name, p_email, p_hire_date, p_job_id, p_salary);
+dbms_output.put_line('Dodano wiersz do tabeli EMPLOYEES');
+END IF;
+
+EXCEPTION
+	WHEN OTHERS THEN
+	dbms_output.PUT_LINE('Nieoczekiwany blad');
+END;
+
+DECLARE
+BEGIN
+cw_e('Kowalski', 'jakismail', '30/03/21', 'IT_PROG', 10000);
+END;
+
