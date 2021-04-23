@@ -2,4 +2,4 @@
 
 
 # ZAI:
-![alt text](https://github.com/michalsz1/ZAI_ZSBD_136290/blob/main/ZAI/136290_cw2/cw2_model_api_produkty_opinie.png?raw=true)
+![alt text](https://github.com/michalsz1/ZAI_ZSBD_136290/blob/main/ZAI/136290_cw2/cw2_model_api_produkty_opinie2.png?raw=true)
